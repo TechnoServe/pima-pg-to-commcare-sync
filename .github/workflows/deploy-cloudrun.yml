@@ -41,14 +41,20 @@ jobs:
 
       - name: Deploy to Cloud Run
         run: |
+          gcloud builds submit . \
+            --project="$PROJECT_ID" \
+            --region="$REGION" \
+            --gcs-source-staging-dir="gs://pima-gcp-cloudbuild-src/source" \
+            --tag="europe-west1-docker.pkg.dev/pima-gcp/cloud-run-source-deploy/pima-postgres-to-commcare-sync:$GITHUB_SHA"
+
+          # Deploy the built image
           gcloud run deploy "$SERVICE" \
             --project="$PROJECT_ID" \
             --region="$REGION" \
-            --source="." \
+            --image="europe-west1-docker.pkg.dev/pima-gcp/cloud-run-source-deploy/pima-postgres-to-commcare-sync:$GITHUB_SHA" \
             --service-account="$RUNTIME_SA" \
             --vpc-connector="$VPC_CONNECTOR" \
             --vpc-egress=private-ranges-only \
             --add-cloudsql-instances="$CLOUDSQL_INSTANCE" \
-            --set-secrets=PG_DSN=pg_dns:latest,COMMCARE_PROCESSOR_URL=COMMCARE_PROCESSOR_URL:latest,REQUEST_TIMEOUT_SECS=REQUEST_TIMEOUT_SECS:latest \
-            --timeout=600 \
-            --verbosity=debug
+            --set-secrets=PG_DSN=PG_DSN:latest,COMMCARE_PROCESSOR_URL=COMMCARE_PROCESSOR_URL:latest,REQUEST_TIMEOUT_SECS=REQUEST_TIMEOUT_SECS:latest \
+            --timeout=600
