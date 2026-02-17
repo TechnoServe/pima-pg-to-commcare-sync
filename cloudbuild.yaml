@@ -1,0 +1,5 @@
+steps: []
+images: []
+options:
+  logging: GCS_ONLY
+logsBucket: gs://pima-gcp-cloudbuild-src/logs
