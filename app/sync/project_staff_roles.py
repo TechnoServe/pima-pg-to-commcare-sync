@@ -22,6 +22,7 @@ class ProjectStaffRoleRow:
     commcare_case_id: str
     project_name: str
     project_unique_id: str
+    staff_id: str | None
     staff_sf_id: str | None
     staff_first_name: str
     staff_middle_name: str | None
@@ -69,7 +70,7 @@ def _rows_to_payload(rows: List[ProjectStaffRoleRow], module_info: Dict[str, Any
                 "commCareCaseId": r.commcare_case_id,
                 "roleForCommCare": r.role,
                 "ccMobileWorkerGroupId": r.commcare_location_id,
-                "staffId": r.staff_sf_id,
+                "staffId": r.staff_sf_id or r.staff_id,
                 "currentModule": module_info.get("currentModule"),
                 "currentModuleName": module_info.get("currentModuleName"),
                 "previousModule": module_info.get("previousModule"),
@@ -105,6 +106,7 @@ def _lock_and_mark_processing(limit: int) -> List[ProjectStaffRoleRow]:
                         psr.commcare_case_id,
                         p.project_name,
                         p.project_unique_id,
+                        u.id::text AS staff_id,
                         u.sf_id::text AS staff_sf_id,
                         u.first_name AS staff_first_name,
                         u.middle_name AS staff_middle_name,
@@ -150,6 +152,7 @@ def _lock_and_mark_processing(limit: int) -> List[ProjectStaffRoleRow]:
                     commcare_case_id=r["commcare_case_id"],
                     project_name=r["project_name"],
                     project_unique_id=r["project_unique_id"],
+                    staff_id=r.get("staff_id"),
                     staff_sf_id=r.get("staff_sf_id"),
                     staff_first_name=r["staff_first_name"],
                     staff_middle_name=r.get("staff_middle_name"),
@@ -215,6 +218,7 @@ def _lock_one_and_mark_processing(record_id: str) -> List[ProjectStaffRoleRow]:
                         psr.commcare_case_id,
                         p.project_name,
                         p.project_unique_id,
+                        u.staff_id::text AS staff_id,
                         u.sf_id::text AS staff_sf_id,
                         u.first_name AS staff_first_name,
                         u.middle_name AS staff_middle_name,
@@ -257,6 +261,7 @@ def _lock_one_and_mark_processing(record_id: str) -> List[ProjectStaffRoleRow]:
                     commcare_case_id=row["commcare_case_id"],
                     project_name=row["project_name"],
                     project_unique_id=row["project_unique_id"],
+                    staff_id=row.get("staff_id"),
                     staff_sf_id=row.get("staff_sf_id"),
                     staff_first_name=row["staff_first_name"],
                     staff_middle_name=row.get("staff_middle_name"),

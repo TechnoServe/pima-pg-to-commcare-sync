@@ -20,11 +20,13 @@ class FarmerGroupRow:
     ffg_name: str
     group_status: str
     project_id: str
+    project_sf_id: str | None
     project_name: str
     project_unique_id: str
     location_name: str | None
     location_id: str
     staff_role_id: str | None
+    staff_sf_id: str | None
     cc_mobile_worker_group_id: str | None
     household_count: int | None
 
@@ -37,24 +39,27 @@ def _rows_to_payload(rows: List[FarmerGroupRow]) -> Dict[str, Any]:
             {
                 "trainingGroupId": r.sf_id or r.id,
                 "trainingGroupName": r.ffg_name,
+                "project": r.project_sf_id or r.project_id,
+                "projectName": r.project_name,
+                "projectUniqueId": r.project_unique_id,
+                "type": None,
+                "description": None,
                 "tnsId": r.tns_id,
                 "commCareCaseId": r.commcare_case_id,
                 "locationName": r.location_name,
                 # "market": None,
+                "groupStatus": r.group_status,
                 "projectLocationId": r.location_id,
                 "ccMobileWorkerGroupId": r.cc_mobile_worker_group_id,
-                "staffId": r.staff_role_id,
+                "staffId": r.staff_sf_id or r.staff_role_id, # Confirm whether project role or staff id is more useful here
                 # "maleGuestAttendance": None, NOT SURE WHY WE NEEED THIS
                 # "measurementGroup": None, NO MEASUREMENT GROUPS IN NEW DB
                 # "cooperative": None, MIGHT NOT BE TRACKING THIS
                 "cooperativeName": None,
                 "householdCounter": r.household_count,
-                "project": r.project_id,
-                "projectName": r.project_name,
-                "projectUniqueId": r.project_unique_id,
-                "type": None,
-                "description": None,
-                "groupStatus": r.group_status,
+                
+                
+                
             }
         )
 
@@ -99,11 +104,13 @@ def _lock_and_mark_processing(limit: int) -> List[FarmerGroupRow]:
                         u.ffg_name,
                         u.status AS group_status,
                         p.id AS project_id,
+                        p.sf_id::text AS project_sf_id,
                         p.project_name,
                         p.project_unique_id,
                         l.location_name,
                         u.location_id::text AS location_id,
                         psr.id::text AS staff_role_id,
+                        psr.sf_id::text AS staff_sf_id,
                         psr.commcare_location_id AS cc_mobile_worker_group_id,
                         (
                           SELECT count(*)
@@ -136,11 +143,13 @@ def _lock_and_mark_processing(limit: int) -> List[FarmerGroupRow]:
                         ffg_name=r["ffg_name"],
                         group_status=r["group_status"],
                         project_id=r["project_id"],
+                        project_sf_id=r.get("project_sf_id"),
                         project_name=r["project_name"],
                         project_unique_id=r["project_unique_id"],
                         location_name=r.get("location_name"),
                         location_id=r["location_id"],
                         staff_role_id=r.get("staff_role_id"),
+                        staff_sf_id=r.get("staff_sf_id"),
                         cc_mobile_worker_group_id=r.get("cc_mobile_worker_group_id"),
                         household_count=r["household_count"],  
                     )
@@ -183,11 +192,13 @@ def _lock_one_and_mark_processing(record_id: str) -> List[FarmerGroupRow]:
                         u.ffg_name,
                         u.status AS group_status,
                         p.id AS project_id,
+                        p.sf_id::text AS project_sf_id,
                         p.project_name,
                         p.project_unique_id,
                         l.location_name,
                         u.location_id::text AS location_id,
                         psr.id::text AS staff_role_id,
+                        psr.sf_id::text AS staff_sf_id,
                         psr.commcare_location_id AS cc_mobile_worker_group_id,
                         (
                           SELECT count(*)
@@ -220,11 +231,13 @@ def _lock_one_and_mark_processing(record_id: str) -> List[FarmerGroupRow]:
                         ffg_name=r["ffg_name"],
                         group_status=r["group_status"],
                         project_id=r["project_id"],
+                        project_sf_id=r.get("project_sf_id"),
                         project_name=r["project_name"],
                         project_unique_id=r["project_unique_id"],
                         location_name=r.get("location_name"),
                         location_id=r["location_id"],
                         staff_role_id=r.get("staff_role_id"),
+                        staff_sf_id=r.get("staff_sf_id"),
                         cc_mobile_worker_group_id=r.get("cc_mobile_worker_group_id"),
                         household_count=r["household_count"],
                     )
