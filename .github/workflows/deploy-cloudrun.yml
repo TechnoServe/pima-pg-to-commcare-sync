@@ -52,3 +52,4 @@ jobs:
             --set-secrets=PG_DSN=pg_dns:latest,COMMCARE_PROCESSOR_URL=COMMCARE_PROCESSOR_URL:latest,REQUEST_TIMEOUT_SECS=REQUEST_TIMEOUT_SECS:latest \
             --timeout=600 \
             --allow-unauthenticated
+            --verbosity=debug

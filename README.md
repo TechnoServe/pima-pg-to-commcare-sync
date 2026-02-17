@@ -2,7 +2,7 @@
 
 This service replaces the old Salesforce trigger callouts.
 
-It scans Postgres for records marked to be sent to CommCare, marks them as “Processing”, packages them into the same payload shape, and sends them to the existing CommCare processor service (the one that already handles the real CommCare logic) hosted on GCP.
+It scans Postgres for records marked to be sent to CommCare, marks them as “Processing”, packages them into the same payload shape, and sends them to the existing CommCare processor service hosted on GCP.
 
 ## What it does
 
@@ -154,14 +154,6 @@ echo -n "https://<COMMCARE_PROCESSOR_URL>" \
 # REQUEST_TIMEOUT_SECS
 echo -n "2000" \
  | gcloud secrets create REQUEST_TIMEOUT_SECS --data-file=-
-```
-
-If the secrets already exist, add a new version instead:
-
-```bash
-echo -n "postgresql://admin:pima2023@/pima?host=/cloudsql/pima-gcp:europe-west1:pima-postgres-prod" \
- | gcloud secrets versions add PG_DSN --data-file=-
-```
 
 ### 3) Service accounts and IAM (one-time)
 
