@@ -19,7 +19,7 @@ PG_DSN = _req("PG_DSN")
 GCP_PROD_INBOX_URL = _req("COMMCARE_PROCESSOR_URL")
 
 # Optional bearer token if your inbox requires auth
-# GCP_AUTH_TOKEN = os.getenv("GCP_AUTH_TOKEN")
+GCP_AUTH_TOKEN = os.getenv("GCP_AUTH_TOKEN", "")
 
 # HTTP
 REQUEST_TIMEOUT_SECS = float(os.getenv("REQUEST_TIMEOUT_SECS", "20"))

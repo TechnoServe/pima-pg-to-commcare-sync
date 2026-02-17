@@ -1,0 +1,54 @@
+name: Deploy to Cloud Run (prod)
+
+on:
+  push:
+    branches: ["main"]
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  PROJECT_ID: pima-gcp
+  REGION: europe-west1
+  SERVICE: pima-postgres-to-commcare-sync
+
+  # runtime service account (the one your Cloud Run service runs as)
+  RUNTIME_SA: pima-sync-run@pima-gcp.iam.gserviceaccount.com
+
+  # cloud sql instance connection name
+  CLOUDSQL_INSTANCE: pima-gcp:europe-west1:pima-postgres-prod
+
+  # vpc connector already created and READY
+  VPC_CONNECTOR: run-conn
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Auth to Google Cloud (WIF)
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: projects/484255681882/locations/global/workloadIdentityPools/github-pool/providers/github-provider
+          service_account: pima-sync-ci@pima-gcp.iam.gserviceaccount.com
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy "$SERVICE" \
+            --project="$PROJECT_ID" \
+            --region="$REGION" \
+            --source="." \
+            --service-account="$RUNTIME_SA" \
+            --vpc-connector="$VPC_CONNECTOR" \
+            --vpc-egress=private-ranges-only \
+            --add-cloudsql-instances="$CLOUDSQL_INSTANCE" \
+            --set-secrets=PG_DSN=pg_dns:latest,COMMCARE_PROCESSOR_URL=COMMCARE_PROCESSOR_URL:latest,REQUEST_TIMEOUT_SECS=REQUEST_TIMEOUT_SECS:latest \
+            --timeout=600 \
+            --allow-unauthenticated
