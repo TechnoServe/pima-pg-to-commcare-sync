@@ -45,7 +45,7 @@ jobs:
             --project="$PROJECT_ID" \
             --region="$REGION" \
             --gcs-source-staging-dir="gs://pima-gcp-cloudbuild-src/source" \
-            --tag="europe-west1-docker.pkg.dev/pima-gcp/cloud-run-source-deploy/pima-postgres-to-commcare-sync:$GITHUB_SHA"
+            --tag="europe-west1-docker.pkg.dev/pima-gcp/cloud-run-source-deploy/pima-postgres-to-commcare-sync:$GITHUB_SHA" \
             --no-stream-logs
 
           gcloud run deploy "$SERVICE" \
