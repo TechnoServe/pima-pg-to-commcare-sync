@@ -27,6 +27,7 @@ class TrainingSessionRow:
     session_status: str | None
     project_unique_id: str
     responsible_staff_id: str | None
+    responsible_staff_sf_id: str | None
 
 
 def _rows_to_payload(rows: List[TrainingSessionRow]) -> Dict[str, Any]:
@@ -42,11 +43,11 @@ def _rows_to_payload(rows: List[TrainingSessionRow]) -> Dict[str, Any]:
                 "trainingGroupCommCareId": r.training_group_commcare_id,
                 "trainingGroupLocationName": r.training_group_location_name,
                 "ccMobileWorkerGroupId": r.cc_mobile_worker_group_id,
-                "sessionStatus": r.session_status,
+                "sessionStatus": 'Active',
                 "sessionOneDate": r.session_one_date,
                 "sessionTwoDate": r.session_two_date,
                 "trainingGroupName": r.training_group_name,
-                "trainingGroupResponsibleStaff": r.responsible_staff_id,
+                "trainingGroupResponsibleStaff":  r.responsible_staff_sf_id or r.responsible_staff_id,
             }
         )
 
@@ -77,6 +78,8 @@ def _lock_and_mark_processing(limit: int) -> List[TrainingSessionRow]:
                         fg.responsible_staff_id::text AS responsible_staff_id,
                         l.location_name AS training_group_location_name,
                         psr.commcare_location_id AS cc_mobile_worker_group_id,
+                        u.id::text AS responsible_staff_id,
+                        u.sf_id::text AS responsible_staff_sf_id,
                         ts.date_session_1::text AS session_one_date,
                         ts.date_session_2::text AS session_two_date,
                         NULL::text AS session_status,
@@ -85,6 +88,7 @@ def _lock_and_mark_processing(limit: int) -> List[TrainingSessionRow]:
                     JOIN pima.training_modules tm ON tm.id = ts.module_id
                     JOIN pima.farmer_groups fg ON fg.id = ts.farmer_group_id
                     JOIN pima.projects p ON p.id = fg.project_id
+                    JOIN pima.users u ON u.id = fg.responsible_staff_id
                     LEFT JOIN pima.locations l ON l.id = fg.location_id
                     LEFT JOIN pima.project_staff_roles psr
                         ON psr.project_id = fg.project_id
@@ -124,6 +128,7 @@ def _lock_and_mark_processing(limit: int) -> List[TrainingSessionRow]:
                     training_group_commcare_id=r["training_group_commcare_id"],
                     training_group_name=r["training_group_name"],
                     responsible_staff_id=r.get("responsible_staff_id"),
+                    responsible_staff_sf_id=r.get("responsible_staff_sf_id"),
                     training_group_location_name=r.get("training_group_location_name"),
                     cc_mobile_worker_group_id=r.get("cc_mobile_worker_group_id"),
                     session_one_date=r.get("session_one_date"),
@@ -156,6 +161,8 @@ def _lock_one_and_mark_processing(record_id: str) -> List[TrainingSessionRow]:
                         fg.responsible_staff_id::text AS responsible_staff_id,
                         l.location_name AS training_group_location_name,
                         psr.commcare_location_id AS cc_mobile_worker_group_id,
+                        u.id::text AS responsible_staff_id,
+                        u.sf_id::text AS responsible_staff_sf_id,
                         ts.date_session_1::text AS session_one_date,
                         ts.date_session_2::text AS session_two_date,
                         NULL::text AS session_status,
@@ -164,6 +171,7 @@ def _lock_one_and_mark_processing(record_id: str) -> List[TrainingSessionRow]:
                     JOIN pima.training_modules tm ON tm.id = ts.module_id
                     JOIN pima.farmer_groups fg ON fg.id = ts.farmer_group_id
                     JOIN pima.projects p ON p.id = fg.project_id
+                    JOIN pima.users u ON u.id = fg.responsible_staff_id
                     LEFT JOIN pima.locations l ON l.id = fg.location_id
                     LEFT JOIN pima.project_staff_roles psr
                         ON psr.project_id = fg.project_id
@@ -200,6 +208,7 @@ def _lock_one_and_mark_processing(record_id: str) -> List[TrainingSessionRow]:
                     training_group_commcare_id=row["training_group_commcare_id"],
                     training_group_name=row["training_group_name"],
                     responsible_staff_id=row.get("responsible_staff_id"),
+                    responsible_staff_sf_id=row.get("responsible_staff_sf_id"),
                     training_group_location_name=row.get("training_group_location_name"),
                     cc_mobile_worker_group_id=row.get("cc_mobile_worker_group_id"),
                     session_one_date=row.get("session_one_date"),
