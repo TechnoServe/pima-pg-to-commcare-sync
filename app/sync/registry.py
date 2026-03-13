@@ -12,10 +12,10 @@ from app.sync.training_sessions import TrainingSessionsHandler
 # Registry of all supported entities to be sent to CommCare.
 ORDERED_ENTITIES: List[str] = [
     "project_staff_roles",
-    # "farmer_groups",
+    "farmer_groups",
     "training_sessions",
     # "households",
-    # "farmers",
+    "farmers",
 ]
 
 

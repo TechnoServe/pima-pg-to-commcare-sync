@@ -29,6 +29,10 @@ class FarmerGroupRow:
     staff_sf_id: str | None
     cc_mobile_worker_group_id: str | None
     household_count: int | None
+    focal_farmer_id: str | None = None
+    assistant_focal_farmer_id: str | None = None
+    focal_farmer_sf_id: str | None = None
+    assistant_focal_farmer_sf_id: str | None = None
 
 
 def _rows_to_payload(rows: List[FarmerGroupRow]) -> Dict[str, Any]:
@@ -57,6 +61,8 @@ def _rows_to_payload(rows: List[FarmerGroupRow]) -> Dict[str, Any]:
                 # "cooperative": None, MIGHT NOT BE TRACKING THIS
                 "cooperativeName": None,
                 "householdCounter": r.household_count,
+                "focalFarmerId": r.focal_farmer_sf_id or r.focal_farmer_id,
+                "assistantFocalFarmerId": r.assistant_focal_farmer_sf_id or r.assistant_focal_farmer_id,
                 
                 
                 
@@ -103,6 +109,10 @@ def _lock_and_mark_processing(limit: int) -> List[FarmerGroupRow]:
                         u.commcare_case_id,
                         u.ffg_name,
                         u.status AS group_status,
+                        ff.id::text AS focal_farmer_id,
+                        aff.id::text AS assistant_focal_farmer_id,
+                        ff.sf_id::text AS focal_farmer_sf_id,
+                        aff.sf_id::text AS assistant_focal_farmer_sf_id,
                         p.id AS project_id,
                         p.sf_id::text AS project_sf_id,
                         p.project_name,
@@ -121,6 +131,8 @@ def _lock_and_mark_processing(limit: int) -> List[FarmerGroupRow]:
                     JOIN pima.projects p ON p.id = u.project_id
                     LEFT JOIN pima.locations l ON l.id = u.location_id
                     LEFT JOIN pima.project_staff_roles psr
+                    LEFT JOIN pima.farmers ff ON ff.id = u.focal_farmer_id
+                    LEFT JOIN pima.farmers aff ON aff.id = u.assistant_focal_farmer_id
                         ON psr.project_id = u.project_id
                        AND psr.staff_id = u.responsible_staff_id
                     ORDER BY p.project_unique_id, u.updated_at
@@ -152,6 +164,10 @@ def _lock_and_mark_processing(limit: int) -> List[FarmerGroupRow]:
                         staff_sf_id=r.get("staff_sf_id"),
                         cc_mobile_worker_group_id=r.get("cc_mobile_worker_group_id"),
                         household_count=r["household_count"],  
+                        focal_farmer_id=r.get("focal_farmer_id"),
+                        assistant_focal_farmer_id=r.get("assistant_focal_farmer_id"),
+                        focal_farmer_sf_id=r.get("focal_farmer_sf_id"),
+                        assistant_focal_farmer_sf_id=r.get("assistant_focal_farmer_sf_id"),
                     )
                     for r in rows
                 ]
@@ -191,6 +207,10 @@ def _lock_one_and_mark_processing(record_id: str) -> List[FarmerGroupRow]:
                         u.commcare_case_id,
                         u.ffg_name,
                         u.status AS group_status,
+                        ff.id::text AS focal_farmer_id,
+                        aff.id::text AS assistant_focal_farmer_id,
+                        ff.sf_id::text AS focal_farmer_sf_id,
+                        aff.sf_id::text AS assistant_focal_farmer_sf_id,
                         p.id AS project_id,
                         p.sf_id::text AS project_sf_id,
                         p.project_name,
@@ -209,6 +229,8 @@ def _lock_one_and_mark_processing(record_id: str) -> List[FarmerGroupRow]:
                     JOIN pima.projects p ON p.id = u.project_id
                     LEFT JOIN pima.locations l ON l.id = u.location_id
                     LEFT JOIN pima.project_staff_roles psr
+                    LEFT JOIN pima.farmers ff ON ff.id = u.focal_farmer_id
+                    LEFT JOIN pima.farmers aff ON aff.id = u.assistant_focal_farmer_id
                         ON psr.project_id = u.project_id
                        AND psr.staff_id = u.responsible_staff_id
                     ORDER BY p.project_unique_id, u.updated_at
@@ -240,6 +262,10 @@ def _lock_one_and_mark_processing(record_id: str) -> List[FarmerGroupRow]:
                         staff_sf_id=r.get("staff_sf_id"),
                         cc_mobile_worker_group_id=r.get("cc_mobile_worker_group_id"),
                         household_count=r["household_count"],
+                        focal_farmer_id=r.get("focal_farmer_id"),
+                        assistant_focal_farmer_id=r.get("assistant_focal_farmer_id"),
+                        focal_farmer_sf_id=r.get("focal_farmer_sf_id"),
+                        assistant_focal_farmer_sf_id=r.get("assistant_focal_farmer_sf_id"),
                     )
                     for r in rows
                 ]
