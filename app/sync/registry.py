@@ -15,7 +15,7 @@ ORDERED_ENTITIES: List[str] = [
     "farmer_groups",
     "training_sessions",
     # "households",
-    "farmers",
+    # "farmers",
 ]
 
 
