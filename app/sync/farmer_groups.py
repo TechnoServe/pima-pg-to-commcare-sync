@@ -175,6 +175,36 @@ def _lock_and_mark_processing(limit: int) -> List[FarmerGroupRow]:
         except Exception:
             conn.rollback()
             raise
+        
+        
+# psycopg2.errors.UndefinedTable: invalid reference to FROM-clause entry for table "u"
+
+# at .execute ( /usr/local/lib/python3.11/site-packages/psycopg2/extras.py:236 )
+# at ._lock_and_mark_processing ( /app/app/sync/farmer_groups.py:86 )
+# at .sync_batch ( /app/app/sync/farmer_groups.py:360 )
+# at .sync_all ( /app/app/main.py:28 )
+# at .run ( /usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py:986 )
+# at .run_sync_in_worker_thread ( /usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py:2502 )
+# at .run_sync ( /usr/local/lib/python3.11/site-packages/anyio/to_thread.py:63 )
+# at .run_in_threadpool ( /usr/local/lib/python3.11/site-packages/starlette/concurrency.py:39 )
+# at .run_endpoint_function ( /usr/local/lib/python3.11/site-packages/fastapi/routing.py:214 )
+# at .app ( /usr/local/lib/python3.11/site-packages/fastapi/routing.py:301 )
+# at .app ( /usr/local/lib/python3.11/site-packages/starlette/routing.py:73 )
+# at .wrapped_app ( /usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py:42 )
+# at .wrapped_app ( /usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py:53 )
+# at .app ( /usr/local/lib/python3.11/site-packages/starlette/routing.py:76 )
+# at .handle ( /usr/local/lib/python3.11/site-packages/starlette/routing.py:288 )
+# at .app ( /usr/local/lib/python3.11/site-packages/starlette/routing.py:735 )
+# at .__call__ ( /usr/local/lib/python3.11/site-packages/starlette/routing.py:715 )
+# at .wrapped_app ( /usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py:42 )
+# at .wrapped_app ( /usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py:53 )
+# at .__call__ ( /usr/local/lib/python3.11/site-packages/starlette/middleware/exceptions.py:62 )
+# at .__call__ ( /usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py:165 )
+# at .__call__ ( /usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py:187 )
+# at .__call__ ( /usr/local/lib/python3.11/site-packages/starlette/applications.py:113 )
+# at .__call__ ( /usr/local/lib/python3.11/site-packages/fastapi/applications.py:1054 )
+# at .__call__ ( /usr/local/lib/python3.11/site-packages/uvicorn/middleware/proxy_headers.py:70 )
+# at .run_asgi ( /usr/local/lib/python3.11/site-packages/uvicorn/protocols/http/httptools_impl.py:401 )
 
 
 def _lock_one_and_mark_processing(record_id: str) -> List[FarmerGroupRow]:
