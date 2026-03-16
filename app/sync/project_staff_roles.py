@@ -68,7 +68,7 @@ def _rows_to_payload(rows: List[ProjectStaffRoleRow], module_info: Dict[str, Any
                 "staffStatus": r.staff_status,
                 "tnsId": r.tns_id,
                 "commCareCaseId": r.commcare_case_id,
-                "roleForCommCare": r.role,
+                "roleForCommCare": r.role.replace(" ", "_"), # Replace empty space with _
                 "ccMobileWorkerGroupId": r.commcare_location_id,
                 "staffId": r.staff_sf_id or r.staff_id,
                 "currentModule": module_info.get("currentModule"),
