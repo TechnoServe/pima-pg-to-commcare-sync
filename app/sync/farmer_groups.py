@@ -25,6 +25,7 @@ class FarmerGroupRow:
     project_unique_id: str
     location_name: str | None
     location_id: str
+    location_sf_id: str | None
     staff_role_id: str | None
     staff_sf_id: str | None
     cc_mobile_worker_group_id: str | None
@@ -53,7 +54,7 @@ def _rows_to_payload(rows: List[FarmerGroupRow]) -> Dict[str, Any]:
                 "locationName": r.location_name,
                 # "market": None,
                 "groupStatus": r.group_status,
-                "projectLocationId": r.location_id,
+                "projectLocationId": r.location_sf_id or r.location_id,
                 "ccMobileWorkerGroupId": r.cc_mobile_worker_group_id,
                 "staffId": r.staff_sf_id or r.staff_role_id, # Confirm whether project role or staff id is more useful here
                 # "maleGuestAttendance": None, NOT SURE WHY WE NEEED THIS
@@ -103,12 +104,12 @@ def _lock_and_mark_processing(limit: int) -> List[FarmerGroupRow]:
                         RETURNING fg.*
                     )
                     SELECT
-                        u.id::text AS id,
-                        u.sf_id::text AS sf_id,
-                        u.tns_id,
-                        u.commcare_case_id,
-                        u.ffg_name,
-                        u.status AS group_status,
+                        ffg.id::text AS id,
+                        ffg.sf_id::text AS sf_id,
+                        ffg.tns_id,
+                        ffg.commcare_case_id,
+                        ffg.ffg_name,
+                        ffg.status AS group_status,
                         ff.id::text AS focal_farmer_id,
                         aff.id::text AS assistant_focal_farmer_id,
                         ff.sf_id::text AS focal_farmer_sf_id,
@@ -118,24 +119,24 @@ def _lock_and_mark_processing(limit: int) -> List[FarmerGroupRow]:
                         p.project_name,
                         p.project_unique_id,
                         l.location_name,
-                        u.location_id::text AS location_id,
+                        l.sf_id::text AS location_sf_id,
+                        ffg.location_id::text AS location_id,
                         psr.id::text AS staff_role_id,
                         psr.sf_id::text AS staff_sf_id,
                         psr.commcare_location_id AS cc_mobile_worker_group_id,
                         (
                           SELECT count(*)
                           FROM pima.households h
-                          WHERE h.farmer_group_id = u.id
+                          WHERE h.farmer_group_id = ffg.id
                         ) AS household_count
-                    FROM updated u
-                    JOIN pima.projects p ON p.id = u.project_id
-                    LEFT JOIN pima.locations l ON l.id = u.location_id
-                    LEFT JOIN pima.project_staff_roles psr
-                    LEFT JOIN pima.farmers ff ON ff.id = u.focal_farmer_id
-                    LEFT JOIN pima.farmers aff ON aff.id = u.assistant_focal_farmer_id
-                        ON psr.project_id = u.project_id
-                       AND psr.staff_id = u.responsible_staff_id
-                    ORDER BY p.project_unique_id, u.updated_at
+                    FROM updated ffg
+                    JOIN pima.projects p ON p.id = ffg.project_id
+                    LEFT JOIN pima.locations l ON l.id = ffg.location_id
+                    LEFT JOIN pima.project_staff_roles psr ON psr.project_id = ffg.project_id
+                    AND psr.staff_id = ffg.responsible_staff_id
+                    LEFT JOIN pima.farmers ff ON ff.id = ffg.focal_farmer_id
+                    LEFT JOIN pima.farmers aff ON aff.id = ffg.assistant_focal_farmer_id
+                    ORDER BY p.project_unique_id, ffg.updated_at
                     """,
                     (limit,),
                 )
@@ -160,6 +161,7 @@ def _lock_and_mark_processing(limit: int) -> List[FarmerGroupRow]:
                         project_unique_id=r["project_unique_id"],
                         location_name=r.get("location_name"),
                         location_id=r["location_id"],
+                        location_sf_id=r["location_sf_id"],
                         staff_role_id=r.get("staff_role_id"),
                         staff_sf_id=r.get("staff_sf_id"),
                         cc_mobile_worker_group_id=r.get("cc_mobile_worker_group_id"),
@@ -175,36 +177,6 @@ def _lock_and_mark_processing(limit: int) -> List[FarmerGroupRow]:
         except Exception:
             conn.rollback()
             raise
-        
-        
-# psycopg2.errors.UndefinedTable: invalid reference to FROM-clause entry for table "u"
-
-# at .execute ( /usr/local/lib/python3.11/site-packages/psycopg2/extras.py:236 )
-# at ._lock_and_mark_processing ( /app/app/sync/farmer_groups.py:86 )
-# at .sync_batch ( /app/app/sync/farmer_groups.py:360 )
-# at .sync_all ( /app/app/main.py:28 )
-# at .run ( /usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py:986 )
-# at .run_sync_in_worker_thread ( /usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py:2502 )
-# at .run_sync ( /usr/local/lib/python3.11/site-packages/anyio/to_thread.py:63 )
-# at .run_in_threadpool ( /usr/local/lib/python3.11/site-packages/starlette/concurrency.py:39 )
-# at .run_endpoint_function ( /usr/local/lib/python3.11/site-packages/fastapi/routing.py:214 )
-# at .app ( /usr/local/lib/python3.11/site-packages/fastapi/routing.py:301 )
-# at .app ( /usr/local/lib/python3.11/site-packages/starlette/routing.py:73 )
-# at .wrapped_app ( /usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py:42 )
-# at .wrapped_app ( /usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py:53 )
-# at .app ( /usr/local/lib/python3.11/site-packages/starlette/routing.py:76 )
-# at .handle ( /usr/local/lib/python3.11/site-packages/starlette/routing.py:288 )
-# at .app ( /usr/local/lib/python3.11/site-packages/starlette/routing.py:735 )
-# at .__call__ ( /usr/local/lib/python3.11/site-packages/starlette/routing.py:715 )
-# at .wrapped_app ( /usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py:42 )
-# at .wrapped_app ( /usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py:53 )
-# at .__call__ ( /usr/local/lib/python3.11/site-packages/starlette/middleware/exceptions.py:62 )
-# at .__call__ ( /usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py:165 )
-# at .__call__ ( /usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py:187 )
-# at .__call__ ( /usr/local/lib/python3.11/site-packages/starlette/applications.py:113 )
-# at .__call__ ( /usr/local/lib/python3.11/site-packages/fastapi/applications.py:1054 )
-# at .__call__ ( /usr/local/lib/python3.11/site-packages/uvicorn/middleware/proxy_headers.py:70 )
-# at .run_asgi ( /usr/local/lib/python3.11/site-packages/uvicorn/protocols/http/httptools_impl.py:401 )
 
 
 def _lock_one_and_mark_processing(record_id: str) -> List[FarmerGroupRow]:
@@ -231,39 +203,39 @@ def _lock_one_and_mark_processing(record_id: str) -> List[FarmerGroupRow]:
                         RETURNING fg.*
                     )
                     SELECT
-                        u.id::text AS id,
-                        u.sf_id::text AS sf_id,
-                        u.tns_id,
-                        u.commcare_case_id,
-                        u.ffg_name,
-                        u.status AS group_status,
+                        ffg.id::text AS id,
+                        ffg.sf_id::text AS sf_id,
+                        ffg.tns_id,
+                        ffg.commcare_case_id,
+                        ffg.ffg_name,
+                        ffg.status AS group_status,
+                        ffg.location_id::text AS location_id,
                         ff.id::text AS focal_farmer_id,
-                        aff.id::text AS assistant_focal_farmer_id,
                         ff.sf_id::text AS focal_farmer_sf_id,
                         aff.sf_id::text AS assistant_focal_farmer_sf_id,
+                        aff.id::text AS assistant_focal_farmer_id,
                         p.id AS project_id,
                         p.sf_id::text AS project_sf_id,
                         p.project_name,
                         p.project_unique_id,
                         l.location_name,
-                        u.location_id::text AS location_id,
+                        l.location_sf_id::text AS location_sf_id,
                         psr.id::text AS staff_role_id,
                         psr.sf_id::text AS staff_sf_id,
                         psr.commcare_location_id AS cc_mobile_worker_group_id,
                         (
                           SELECT count(*)
                           FROM pima.households h
-                          WHERE h.farmer_group_id = u.id
+                          WHERE h.farmer_group_id = ffg.id
                         ) AS household_count
-                    FROM updated u
-                    JOIN pima.projects p ON p.id = u.project_id
-                    LEFT JOIN pima.locations l ON l.id = u.location_id
-                    LEFT JOIN pima.project_staff_roles psr
-                    LEFT JOIN pima.farmers ff ON ff.id = u.focal_farmer_id
-                    LEFT JOIN pima.farmers aff ON aff.id = u.assistant_focal_farmer_id
-                        ON psr.project_id = u.project_id
-                       AND psr.staff_id = u.responsible_staff_id
-                    ORDER BY p.project_unique_id, u.updated_at
+                    FROM updated ffg
+                    JOIN pima.projects p ON p.id = ffg.project_id
+                    LEFT JOIN pima.locations l ON l.id = ffg.location_id
+                    LEFT JOIN pima.project_staff_roles psr ON psr.project_id = ffg.project_id
+                    AND psr.staff_id = ffg.responsible_staff_id
+                    LEFT JOIN pima.farmers ff ON ff.id = ffg.focal_farmer_id
+                    LEFT JOIN pima.farmers aff ON aff.id = ffg.assistant_focal_farmer_id
+                    ORDER BY p.project_unique_id, ffg.updated_at
                     """,
                     (record_id,),
                 )
@@ -287,6 +259,7 @@ def _lock_one_and_mark_processing(record_id: str) -> List[FarmerGroupRow]:
                         project_name=r["project_name"],
                         project_unique_id=r["project_unique_id"],
                         location_name=r.get("location_name"),
+                        location_sf_id=r.get("location_sf_id"),
                         location_id=r["location_id"],
                         staff_role_id=r.get("staff_role_id"),
                         staff_sf_id=r.get("staff_sf_id"),

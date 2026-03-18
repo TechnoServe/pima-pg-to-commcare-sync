@@ -27,10 +27,12 @@ class FarmerRow:
     tns_id: str
     commcare_case_id: str
     household_id: str
+    household_sf_id: str | None
     household_name: str
     household_number: int
     household_farm_size: str | None
     training_group_id: str
+    training_group_sf_id: str | None
     training_group_name: str
     training_group_commcare_id: str
     training_group_location_name: str | None
@@ -56,7 +58,7 @@ def _rows_to_payload(rows: List[FarmerRow]) -> Dict[str, Any]:
                 "participantPhoneNumber": r.phone_number,
                 "participantOtherIDNumber": r.other_id,
                 "participantPrimaryHouseholdMember": str(r.is_primary_household_member) if r.is_primary_household_member is not None else None,
-                "householdId": r.household_id,
+                "householdId": r.household_sf_id or r.household_id,
                 "householdName": r.household_name,
                 "HHID": r.household_number,
                 "householdFarmSize": r.household_farm_size,
@@ -64,13 +66,13 @@ def _rows_to_payload(rows: List[FarmerRow]) -> Dict[str, Any]:
                 "market": None,
                 "trainingGroupLocationName": r.training_group_location_name,
                 "ccMobileWorkerGroupId": r.cc_mobile_worker_group_id,
-                "trainingGroupId": r.training_group_id,
+                "trainingGroupId": r.training_group_sf_id or r.training_group_id,
                 "status": r.status,
-                # Do we not these fields anymore? They are not mapped on the new DB
+                # Do we not need these fields anymore? They are not mapped on the new DB
                 "measurementGroupId": None,
                 "measurementGroupCommCareId": None,
                 "participantVisibility": None,
-                "commCareCaseStatus": None, 
+                "commCareCaseStatus": r.status, 
             }
         )
 
@@ -122,10 +124,12 @@ def _lock_and_mark_processing(limit: int) -> List[FarmerRow]:
                         u.tns_id,
                         u.commcare_case_id,
                         h.id::text AS household_id,
+                        h.sf_id::text AS household_sf_id,
                         h.household_name,
                         h.household_number,
                         h.farm_size::text AS household_farm_size,
                         fg.id::text AS training_group_id,
+                        fg.sf_id::text AS training_group_sf_id,
                         fg.ffg_name AS training_group_name,
                         fg.commcare_case_id AS training_group_commcare_id,
                         l.location_name AS training_group_location_name,
@@ -165,10 +169,12 @@ def _lock_and_mark_processing(limit: int) -> List[FarmerRow]:
                         tns_id=r["tns_id"],
                         commcare_case_id=r["commcare_case_id"],
                         household_id=r["household_id"],
+                        household_sf_id=r.get("household_sf_id"),
                         household_name=r["household_name"],
                         household_number=r["household_number"],
                         household_farm_size=r.get("household_farm_size"),
                         training_group_id=r["training_group_id"],
+                        training_group_sf_id=r.get("training_group_sf_id"),
                         training_group_name=r["training_group_name"],
                         training_group_commcare_id=r["training_group_commcare_id"],
                         training_group_location_name=r.get("training_group_location_name"),
@@ -220,10 +226,12 @@ def _lock_one_and_mark_processing(record_id: str) -> List[FarmerRow]:
                         u.tns_id,
                         u.commcare_case_id,
                         h.id::text AS household_id,
+                        h.sf_id::text AS household_sf_id,
                         h.household_name,
                         h.household_number,
                         h.farm_size::text AS household_farm_size,
                         fg.id::text AS training_group_id,
+                        fg.sf_id::text AS training_group_sf_id,
                         fg.ffg_name AS training_group_name,
                         fg.commcare_case_id AS training_group_commcare_id,
                         l.location_name AS training_group_location_name,
@@ -263,10 +271,12 @@ def _lock_one_and_mark_processing(record_id: str) -> List[FarmerRow]:
                         tns_id=r["tns_id"],
                         commcare_case_id=r["commcare_case_id"],
                         household_id=r["household_id"],
+                        household_sf_id=r.get("household_sf_id"),
                         household_name=r["household_name"],
                         household_number=r["household_number"],
                         household_farm_size=r.get("household_farm_size"),
                         training_group_id=r["training_group_id"],
+                        training_group_sf_id=r.get("training_group_sf_id"),
                         training_group_name=r["training_group_name"],
                         training_group_commcare_id=r["training_group_commcare_id"],
                         training_group_location_name=r.get("training_group_location_name"),
