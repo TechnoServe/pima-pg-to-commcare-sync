@@ -14,25 +14,39 @@ def health():
 
 @app.post("/sync")
 def sync_all():
-    """Runs a single managed batch for all entities.
-
+    """Runs a single managed batch for all entities. 
     Intended to be called by Cloud Scheduler on a fixed interval.
     """
 
     results = {}
     totals = {"picked": 0, "sent": 0}
 
-    #try:
+    try:
+        for entity in ORDERED_ENTITIES:
+            handler = HANDLERS[entity]
+            r = handler.sync_batch()
+            results[entity] = r
+            totals["picked"] += int(r.get("picked", 0))
+            totals["sent"] += int(r.get("sent", 0))
+
+        return {"totals": totals, "results": results}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Sync failed: {type(e).__name__}")
+    
+#check how many records to sync for all entities, intended for monitoring and alerting purposes
+@app.get("/sync/count")
+def count_all():
+    """Endpoint to check how many records are pending sync for all entities."""
+    results = {}
     for entity in ORDERED_ENTITIES:
         handler = HANDLERS[entity]
-        r = handler.sync_batch()
-        results[entity] = r
-        totals["picked"] += int(r.get("picked", 0))
-        totals["sent"] += int(r.get("sent", 0))
-
-    return {"totals": totals, "results": results}
-    # except Exception as e:
-    #     raise HTTPException(status_code=500, detail=f"Sync failed: {type(e).__name__}")
+        if handler:
+            try:
+                count = handler.count_pending()
+                results[entity] = count
+            except Exception as e:
+                raise HTTPException(status_code=500, detail=f"Count failed for {entity}: {type(e).__name__}")
+    return results         
 
 
 @app.post("/sync/{entity}/{record_id}")

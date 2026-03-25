@@ -318,3 +318,16 @@ class ProjectStaffRolesHandler(SyncHandler):
         if not rows:
             raise KeyError("not found")
         return _send_grouped(rows).as_dict()
+    
+    def count_pending(self) -> int:
+        with get_conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT count(*)
+                    FROM pima.project_staff_roles
+                    WHERE send_to_commcare_status = 'Pending'
+                    """,
+                )
+                count = cur.fetchone()[0]
+                return count
