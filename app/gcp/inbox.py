@@ -19,6 +19,7 @@ def post_to_gcp_inbox(payload: Dict[str, Any], *, auth_token: Optional[str] = No
         headers["authorization"] = f"Bearer {token}"
 
     print(f"Posting to GCP payload: {payload}")
+    print("*" * 50)
 
     return requests.post(
         GCP_PROD_INBOX_URL,

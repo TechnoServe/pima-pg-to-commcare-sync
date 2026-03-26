@@ -25,6 +25,7 @@ class HouseholdRow:
     fv_aa_current_sampling_round: int | None
     cc_mobile_worker_group_id: str | None
     training_group_id: str
+    training_group_sf_id: str | None
     training_group_name: str
     module_name: str | None
     module_number: int | None
@@ -36,17 +37,20 @@ def _rows_to_payload(rows: List[HouseholdRow]) -> Dict[str, Any]:
     project_unique_id = rows[0].project_unique_id if rows else None
     households: List[Dict[str, Any]] = []
     for r in rows:
+        if r.number_of_members == 0:
+            continue    
+        
         households.append(
             {
                 "householdId": r.sf_id or r.id,
                 "householdName": r.household_name,
                 "numberOfMembers": r.number_of_members,
                 "tnsId": r.tns_id,
-                "fvAAVisited": str(r.fv_aa_visited) if r.fv_aa_visited is not None else None,
-                "fvAASampled": "Yes" if r.fv_aa_sampled else None,
+                "fvAAVisited": "Yes" if r.fv_aa_visited else "No",
+                "fvAASampled": "Yes",
                 "fvAACurrentSamplingRound": r.fv_aa_current_sampling_round,
                 "householdStatus": r.household_status,
-                "commCareCaseId": r.commcare_case_id,
+                "commCareCaseId": r.sf_id or r.id,
                 "ccMobileWorkerGroupId": r.cc_mobile_worker_group_id,
                 "trainingGroupId": r.training_group_id,
                 "trainingGroupName": r.training_group_name,
@@ -59,7 +63,7 @@ def _rows_to_payload(rows: List[HouseholdRow]) -> Dict[str, Any]:
 
     return {
         "source": "postgres",
-        "jobType": "Household",
+        "jobType": "Household Sampling",
         "uniqueProjectKey": project_unique_id,
         "households": households,
         "entity": "households",
@@ -103,6 +107,7 @@ def _lock_and_mark_processing(limit: int) -> List[HouseholdRow]:
                         u.fv_aa_sampling_round AS fv_aa_current_sampling_round,
                         psr.commcare_location_id AS cc_mobile_worker_group_id,
                         fg.id::text AS training_group_id,
+                        fg.sf_id::text AS training_group_sf_id,
                         fg.ffg_name AS training_group_name,
                         cm.module_name,
                         cm.module_number,
@@ -130,7 +135,7 @@ def _lock_and_mark_processing(limit: int) -> List[HouseholdRow]:
                         FROM (
                             SELECT array_agg(full_name) AS nms
                             FROM (
-                                SELECT (f.first_name || ' ' || f.last_name) AS full_name
+                                SELECT (f.first_name) AS full_name
                                 FROM pima.farmers f
                                 WHERE f.household_id = u.id
                                   AND f.is_deleted = false
@@ -173,6 +178,7 @@ def _lock_and_mark_processing(limit: int) -> List[HouseholdRow]:
                         cc_mobile_worker_group_id=r.get("cc_mobile_worker_group_id"),
                         training_group_id=r["training_group_id"],
                         training_group_name=r["training_group_name"],
+                        training_group_sf_id=r.get("training_group_sf_id"),
                         module_name=r.get("module_name"),
                         module_number=r.get("module_number"),
                         project_unique_id=r["project_unique_id"],
@@ -221,6 +227,7 @@ def _lock_one_and_mark_processing(record_id: str) -> List[HouseholdRow]:
                         u.fv_aa_sampling_round AS fv_aa_current_sampling_round,
                         psr.commcare_location_id AS cc_mobile_worker_group_id,
                         fg.id::text AS training_group_id,
+                        fg.sf_id::text AS training_group_sf_id,
                         fg.ffg_name AS training_group_name,
                         cm.module_name,
                         cm.module_number,
@@ -248,7 +255,7 @@ def _lock_one_and_mark_processing(record_id: str) -> List[HouseholdRow]:
                         FROM (
                             SELECT array_agg(full_name) AS nms
                             FROM (
-                                SELECT (f.first_name || ' ' || f.last_name) AS full_name
+                                SELECT (f.first_name) AS full_name
                                 FROM pima.farmers f
                                 WHERE f.household_id = u.id
                                   AND f.is_deleted = false
@@ -290,6 +297,7 @@ def _lock_one_and_mark_processing(record_id: str) -> List[HouseholdRow]:
                         fv_aa_current_sampling_round=r.get("fv_aa_current_sampling_round"),
                         cc_mobile_worker_group_id=r.get("cc_mobile_worker_group_id"),
                         training_group_id=r["training_group_id"],
+                        training_group_sf_id=r.get("training_group_sf_id"),
                         training_group_name=r["training_group_name"],
                         module_name=r.get("module_name"),
                         module_number=r.get("module_number"),
