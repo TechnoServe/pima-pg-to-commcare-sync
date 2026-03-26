@@ -52,7 +52,7 @@ def _rows_to_payload(rows: List[HouseholdRow]) -> Dict[str, Any]:
                 "householdStatus": r.household_status,
                 "commCareCaseId": r.sf_id or r.id,
                 "ccMobileWorkerGroupId": r.cc_mobile_worker_group_id,
-                "trainingGroupId": r.training_group_id,
+                "trainingGroupId": r.training_group_sf_id or r.training_group_id,
                 "trainingGroupName": r.training_group_name,
                 "projectUniqueId": r.project_unique_id,
                 "householdParticipants": r.household_participants,
