@@ -149,6 +149,7 @@ def _lock_and_mark_processing(limit: int) -> List[HouseholdRow]:
                         FROM pima.training_modules tm
                         WHERE tm.project_id = fg.project_id
                           AND tm.current_module = true
+                          AND tm.current_previous = 'Current'
                           AND tm.is_deleted = false
                         ORDER BY tm.updated_at DESC
                         LIMIT 1
@@ -269,6 +270,7 @@ def _lock_one_and_mark_processing(record_id: str) -> List[HouseholdRow]:
                         FROM pima.training_modules tm
                         WHERE tm.project_id = fg.project_id
                           AND tm.current_module = true
+                          AND tm.current_previous = 'Current'
                           AND tm.is_deleted = false
                         ORDER BY tm.updated_at DESC
                         LIMIT 1
