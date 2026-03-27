@@ -317,5 +317,6 @@ jobs:
 ```
 
 ### Verify
+### Maintain
 
 Push to `main` and check GitHub Actions logs. A successful run will create a new Cloud Run revision.
