@@ -30,6 +30,7 @@ class FarmerRow:
     household_sf_id: str | None
     household_name: str
     household_number: int
+    household_tns_id: str | None
     household_farm_size: str | None
     training_group_id: str
     training_group_sf_id: str | None
@@ -58,7 +59,8 @@ def _rows_to_payload(rows: List[FarmerRow]) -> Dict[str, Any]:
                 "participantPhoneNumber": r.phone_number,
                 "participantOtherIDNumber": r.other_id,
                 "participantPrimaryHouseholdMember": str(r.is_primary_household_member) if r.is_primary_household_member is not None else None,
-                "householdId": r.household_sf_id or r.household_id,
+                "householdId": r.household_tns_id,
+                "householdPIMAId": r.household_sf_id or r.household_id,
                 "householdName": r.household_name,
                 "HHID": r.household_number,
                 "householdFarmSize": r.household_farm_size,
@@ -127,6 +129,7 @@ def _lock_and_mark_processing(limit: int) -> List[FarmerRow]:
                         h.sf_id::text AS household_sf_id,
                         h.household_name,
                         h.household_number,
+                        h.tns_id::text AS household_tns_id,
                         h.farm_size::text AS household_farm_size,
                         fg.id::text AS training_group_id,
                         fg.sf_id::text AS training_group_sf_id,
@@ -172,6 +175,7 @@ def _lock_and_mark_processing(limit: int) -> List[FarmerRow]:
                         household_sf_id=r.get("household_sf_id"),
                         household_name=r["household_name"],
                         household_number=r["household_number"],
+                        household_tns_id=r.get("household_tns_id"),
                         household_farm_size=r.get("household_farm_size"),
                         training_group_id=r["training_group_id"],
                         training_group_sf_id=r.get("training_group_sf_id"),
@@ -229,6 +233,7 @@ def _lock_one_and_mark_processing(record_id: str) -> List[FarmerRow]:
                         h.sf_id::text AS household_sf_id,
                         h.household_name,
                         h.household_number,
+                        h.tns_id::text AS household_tns_id,
                         h.farm_size::text AS household_farm_size,
                         fg.id::text AS training_group_id,
                         fg.sf_id::text AS training_group_sf_id,
@@ -274,6 +279,7 @@ def _lock_one_and_mark_processing(record_id: str) -> List[FarmerRow]:
                         household_sf_id=r.get("household_sf_id"),
                         household_name=r["household_name"],
                         household_number=r["household_number"],
+                        household_tns_id=r.get("household_tns_id"),
                         household_farm_size=r.get("household_farm_size"),
                         training_group_id=r["training_group_id"],
                         training_group_sf_id=r.get("training_group_sf_id"),
