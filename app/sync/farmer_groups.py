@@ -32,8 +32,8 @@ class FarmerGroupRow:
     household_count: int | None
     focal_farmer_id: str | None = None
     assistant_focal_farmer_id: str | None = None
-    focal_farmer_sf_id: str | None = None
-    assistant_focal_farmer_sf_id: str | None = None
+    focal_farmer_case_id: str | None = None
+    assistant_focal_farmer_case_id: str | None = None
 
 
 def _rows_to_payload(rows: List[FarmerGroupRow]) -> Dict[str, Any]:
@@ -62,8 +62,8 @@ def _rows_to_payload(rows: List[FarmerGroupRow]) -> Dict[str, Any]:
                 # "cooperative": None, MIGHT NOT BE TRACKING THIS
                 "cooperativeName": None,
                 "householdCounter": r.household_count,
-                "focalFarmerId": r.focal_farmer_sf_id or r.focal_farmer_id,
-                "assistantFocalFarmerId": r.assistant_focal_farmer_sf_id or r.assistant_focal_farmer_id,
+                "focalFarmerId": r.focal_farmer_case_id or r.focal_farmer_id,
+                "assistantFocalFarmerId": r.assistant_focal_farmer_case_id or r.assistant_focal_farmer_id,
                 
                 
                 
@@ -112,8 +112,8 @@ def _lock_and_mark_processing(limit: int) -> List[FarmerGroupRow]:
                         ffg.status AS group_status,
                         ff.id::text AS focal_farmer_id,
                         aff.id::text AS assistant_focal_farmer_id,
-                        ff.sf_id::text AS focal_farmer_sf_id,
-                        aff.sf_id::text AS assistant_focal_farmer_sf_id,
+                        ff.commcare_case_id::text AS focal_farmer_case_id,
+                        aff.commcare_case_id::text AS assistant_focal_farmer_case_id,
                         p.id AS project_id,
                         p.sf_id::text AS project_sf_id,
                         p.project_name,
@@ -168,8 +168,8 @@ def _lock_and_mark_processing(limit: int) -> List[FarmerGroupRow]:
                         household_count=r["household_count"],  
                         focal_farmer_id=r.get("focal_farmer_id"),
                         assistant_focal_farmer_id=r.get("assistant_focal_farmer_id"),
-                        focal_farmer_sf_id=r.get("focal_farmer_sf_id"),
-                        assistant_focal_farmer_sf_id=r.get("assistant_focal_farmer_sf_id"),
+                        focal_farmer_case_id=r.get("focal_farmer_case_id"),
+                        assistant_focal_farmer_case_id=r.get("assistant_focal_farmer_case_id"),
                     )
                     for r in rows
                 ]
@@ -211,8 +211,8 @@ def _lock_one_and_mark_processing(record_id: str) -> List[FarmerGroupRow]:
                         ffg.status AS group_status,
                         ffg.location_id::text AS location_id,
                         ff.id::text AS focal_farmer_id,
-                        ff.sf_id::text AS focal_farmer_sf_id,
-                        aff.sf_id::text AS assistant_focal_farmer_sf_id,
+                        ff.commcare_case_id::text AS focal_farmer_case_id,
+                        aff.commcare_case_id::text AS assistant_focal_farmer_case_id,
                         aff.id::text AS assistant_focal_farmer_id,
                         p.id AS project_id,
                         p.sf_id::text AS project_sf_id,
@@ -267,8 +267,8 @@ def _lock_one_and_mark_processing(record_id: str) -> List[FarmerGroupRow]:
                         household_count=r["household_count"],
                         focal_farmer_id=r.get("focal_farmer_id"),
                         assistant_focal_farmer_id=r.get("assistant_focal_farmer_id"),
-                        focal_farmer_sf_id=r.get("focal_farmer_sf_id"),
-                        assistant_focal_farmer_sf_id=r.get("assistant_focal_farmer_sf_id"),
+                        focal_farmer_case_id=r.get("focal_farmer_case_id"),
+                        assistant_focal_farmer_case_id=r.get("assistant_focal_farmer_case_id"),
                     )
                     for r in rows
                 ]
