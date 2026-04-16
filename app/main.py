@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from fastapi import FastAPI, HTTPException
-
+# import traceback
 from app.sync.registry import HANDLERS, ORDERED_ENTITIES
 
 app = FastAPI(title="PIMA Postgres → CommCare Triggers", version="0.1.0")
@@ -59,6 +59,9 @@ def sync_one(entity: str, record_id: str):
         r = handler.sync_one(record_id)
         return {"entity": entity, **r}
     except KeyError:
+        # traceback.print_exc()
         raise HTTPException(status_code=404, detail="Record not found")
     except Exception as e:
+        #  Print out error and line
+        # traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Sync failed: {type(e).__name__}")

@@ -8,6 +8,7 @@ from app.sync.farmers import FarmersHandler
 from app.sync.households import HouseholdsHandler
 from app.sync.project_staff_roles import ProjectStaffRolesHandler
 from app.sync.training_sessions import TrainingSessionsHandler
+from app.sync.wetmills import WetmillsHandler
 
 # Registry of all supported entities to be sent to CommCare.
 ORDERED_ENTITIES: List[str] = [
@@ -16,7 +17,7 @@ ORDERED_ENTITIES: List[str] = [
     "training_sessions",
     "households",
     "farmers",
-    # "wetmills",,
+    "wetmills",
 ]
 
 
@@ -27,4 +28,5 @@ HANDLERS: Dict[str, SyncHandler] = {
     "training_sessions": TrainingSessionsHandler(),
     "households": HouseholdsHandler(),
     "farmers": FarmersHandler(),
+    "wetmills": WetmillsHandler(),
 }
