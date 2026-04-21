@@ -57,6 +57,7 @@ class WetmillRow:
     staff_role_id: str | None
     staff_commcare_case_id: str | None
     cc_mobile_worker_group_id: str | None
+    mill_external_id: str | None
 
 def _rows_to_payload(rows: List[WetmillRow]) -> Dict[str, Any]:
     project_unique_id = rows[0].project_unique_id if rows else None
@@ -98,7 +99,8 @@ def _rows_to_payload(rows: List[WetmillRow]) -> Dict[str, Any]:
                 "genderEquitableBusinessPracticesCompleted": "TRUE" if r.gender_equitable_business_practices_completed else "FALSE",
                 "genderEquitableBusinessPracticesDate": r.gender_equitable_business_practices_date.isoformat() if r.gender_equitable_business_practices_date else None, 
                 "ccMobileWorkerGroupId": r.cc_mobile_worker_group_id,
-                "staffId": r.staff_commcare_case_id or r.staff_role_id
+                "staffId": r.staff_commcare_case_id or r.staff_role_id,
+                "millExternalId": r.mill_external_id if r.mill_external_id else None
             }
         )
 
@@ -270,6 +272,7 @@ def _lock_and_mark_processing(limit: int) -> List[WetmillRow]:
                         w.comments::text AS comments,
                         w.registration_date::date AS registration_date,
                         w.status::text AS status,
+                        w.mill_external_id AS mill_external_id,
                         p.id AS project_id,
                         p.sf_id::text AS project_sf_id,
                         p.project_name::text AS project_name,
@@ -376,6 +379,7 @@ def _lock_and_mark_processing(limit: int) -> List[WetmillRow]:
                         gender_equitable_business_practices_date=r["gender_equitable_business_practices_date"],
                         wet_mill_training_date=r["wet_mill_training_date"],
                         routine_visit_date=r["routine_visit_date"],
+                        mill_external_id=["mill_external_id"],
                     )
                     for r in rows
                 ]
@@ -536,6 +540,7 @@ def _lock_one_and_mark_processing(record_id: str) -> List[WetmillRow]:
                         w.name::text AS wetmill_name,
                         w.mill_status::text AS mill_status,
                         w.status::text AS status,
+                        w.mill_external_id AS mill_external_id,
                         w.exporting_status::text AS exporting_status,
                         w.programme::text AS programme,
                         w.country::text AS country,
@@ -649,6 +654,7 @@ def _lock_one_and_mark_processing(record_id: str) -> List[WetmillRow]:
                         gender_equitable_business_practices_date=r["gender_equitable_business_practices_date"],
                         wet_mill_training_date=r["wet_mill_training_date"],
                         routine_visit_date=r["routine_visit_date"],
+                        mill_external_id=["mill_external_id"],
                     )
                     for r in rows
                 ]
