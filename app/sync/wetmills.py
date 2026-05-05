@@ -379,7 +379,7 @@ def _lock_and_mark_processing(limit: int) -> List[WetmillRow]:
                         gender_equitable_business_practices_date=r["gender_equitable_business_practices_date"],
                         wet_mill_training_date=r["wet_mill_training_date"],
                         routine_visit_date=r["routine_visit_date"],
-                        mill_external_id=["mill_external_id"],
+                        mill_external_id=r["mill_external_id"],
                     )
                     for r in rows
                 ]
@@ -654,7 +654,7 @@ def _lock_one_and_mark_processing(record_id: str) -> List[WetmillRow]:
                         gender_equitable_business_practices_date=r["gender_equitable_business_practices_date"],
                         wet_mill_training_date=r["wet_mill_training_date"],
                         routine_visit_date=r["routine_visit_date"],
-                        mill_external_id=["mill_external_id"],
+                        mill_external_id=r["mill_external_id"],
                     )
                     for r in rows
                 ]
